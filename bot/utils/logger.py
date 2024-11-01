@@ -3,7 +3,7 @@ from loguru import logger
 
 logger.remove()
 logger.add(
-    level="DEBUG", 
+    level="DEBUG",
     sink=sys.stdout, 
     format="<white>{time:YYYY-MM-DD HH:mm:ss}</white>"
                                    " | <level>{level: <8}</level>"
@@ -20,6 +20,9 @@ class SessionLogger:
 
     def __init__(self, session_name):
         self.session_name = session_name
+
+    def trace(self, message):
+        logger.trace(f"{self.session_name} | {message}")
 
     def debug(self, message):
         logger.debug(f"{self.session_name} | {message}")
