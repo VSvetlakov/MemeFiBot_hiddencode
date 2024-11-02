@@ -258,7 +258,6 @@ class Tapper:
                 if task['status'] == 'Verification' and delta_time > 0:
                     count_sec_need_wait = delta_time + randint(5, 15)
                     self.log.info(f"Video: <r>{task['name']}</r> | Sleep: {int(count_sec_need_wait)}s.")
-                    continue
                     await asyncio.sleep(delay=count_sec_need_wait)
 
                 if task['taskVerificationType'] == "SecretCode":
@@ -310,7 +309,7 @@ class Tapper:
         async with CloudflareScraper(headers=headers, connector=conn) as http_client:
             if proxy:
                 try:
-                    ip = await check_proxy(http_client=http_client, proxy=proxy)
+                    ip = await check_proxy(http_client=http_client)
                     self.log.info(f"Proxy IP: {ip}")
                 except Exception as error:
                     self.log.error(f"Proxy: {proxy} | Error: {error}")

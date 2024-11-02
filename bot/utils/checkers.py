@@ -19,7 +19,7 @@ def set_first_run():
     with open(FIRST_RUN_FILE, 'w') as file:
         file.write('https://youtu.be/dQw4w9WgXcQ')
 
-async def check_proxy(http_client: ClientSession, proxy: Proxy) -> None:
+async def check_proxy(http_client: ClientSession) -> None:
     response = await http_client.get(url='https://api.ipify.org?format=json', timeout=ClientTimeout(5))
     ip = (await response.json()).get('ip')
     return ip
