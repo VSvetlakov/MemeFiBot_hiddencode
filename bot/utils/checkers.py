@@ -1,25 +1,31 @@
-from aiohttp import ClientSession, ClientTimeout
+import typing
+from asyncio import CancelledError
+
+from aiohttp import ClientSession, ClientTimeout, ClientProxyConnectionError
 from better_proxy import Proxy
-from os import path
 
-from bot.config.config import CLAN_CHECK_FILE, FIRST_RUN_FILE
+from python_socks import ProxyTimeoutError, ProxyError
+
+from bot.utils.connector import get_connector
+from bot.utils.logger import logger
+
+_log = logger.opt(colors=True).bind(name=__name__)
 
 
-def first_check_clan():
-    return not path.exists(CLAN_CHECK_FILE)
-
-def set_first_run_check_clan():
-    with open(CLAN_CHECK_FILE, 'w') as file:
-        file.write('This file indicates that the script has already run once.')
-
-def is_first_run():
-    return not path.exists(FIRST_RUN_FILE)
-
-def set_first_run():
-    with open(FIRST_RUN_FILE, 'w') as file:
-        file.write('https://youtu.be/dQw4w9WgXcQ')
-
-async def check_proxy(http_client: ClientSession, proxy: Proxy) -> None:
-    response = await http_client.get(url='https://api.ipify.org?format=json', timeout=ClientTimeout(5))
-    ip = (await response.json()).get('ip')
-    return ip
+async def check_proxy(proxy: typing.Union[typing.Text, Proxy]) -> typing.Optional[typing.Text]:
+    if isinstance(proxy, typing.Text):
+        proxy = Proxy.from_str(proxy)
+    elif not isinstance(proxy, Proxy):
+        raise ValueError("proxy must be type of Proxy or str")
+    async with ClientSession(connector=get_connector(proxy.as_url)) as session:
+        try:
+            response = await session.get(url='https://api.ipify.org?format=json', timeout=ClientTimeout(5))
+            data = await response.json()
+            if data and data.get('ip'):
+                return data.get('ip')
+        except (ConnectionRefusedError, ClientProxyConnectionError, CancelledError, TimeoutError, ProxyTimeoutError):
+            _log.trace(f"Proxy not available")
+        except ProxyError as e:
+            _log.error(f"The proxy type may be incorrect! Error: {e}")
+        except Exception as e:
+            _log.opt(exception=e).error(f"Unknown error")
