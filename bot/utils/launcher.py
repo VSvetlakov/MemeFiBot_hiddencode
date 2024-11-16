@@ -2,11 +2,11 @@ import os
 import glob
 import asyncio
 import argparse
+from asyncio import sleep
 from itertools import cycle
 
 import platform
 import sys
-#import distro
 
 from pyrogram import Client
 from better_proxy import Proxy
@@ -73,31 +73,8 @@ async def get_tg_clients() -> list[Client]:
 
 async def process() -> None:
 
-    # Версия Python
-    python_version = sys.version
-
-    # Версия системы
-    system = platform.system()
-    release = platform.release()
-
-    if system == "Windows":
-        logger.debug(f"⚡️ Версия Python: {python_version}")
-        logger.debug(f"⚡️ Операционная система: {system} {release}")
-    elif system == "Linux":
-        #distro_info = distro.linux_distribution()
-        logger.debug(f"⚡️ Версия Python: {python_version}")
-        logger.debug(f"⚡️ Операционная система: {system} {release}")
-        #logger.debug(f"⚡️ Дистрибутив Linux: {distro_info[0]} {distro_info[1]}")
-    else:
-        logger.debug(f"⚡️ Версия Python: {python_version}")
-
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--action', type=int, help='Action to perform')
-
-    logger.info(f"Detected {len(get_session_names())} sessions | {len(get_proxies())} proxies")
-    logger.warning("⚠️ \n<e>en:</e> NOT FOR SALE\n<e>ru:</e> НЕ ДЛЯ ПРОДАЖИ\n<e>es:</e> NO VENTA\n<e>fr:</e> PAS À VENDRE\n<e>it:</e> NON PER VENDITA\n<e>gh:</e> YƐN TƆN")
-    logger.info("<b>For updates and support visit:</b> <e>https://github.com/sirbiprod/MemeFiBot</e>")
-    logger.info("Special for HiddenCode")
 
     action = parser.parse_args().action
 
@@ -115,6 +92,15 @@ async def process() -> None:
                 action = int(action)
                 break
 
+    logger.info("<r>MemeFi Wallet Generator and Connector</r> - info message...")
+    logger.info("The developers of this bot have developed a script that implements the <y>automatic generation of Sui wallets</y> and their binding to sessions.")
+    logger.info("If you have a large farm of accounts, you will most likely need this tool; there seem to be no analogues at the moment.")
+    logger.info("For any questions please contact https://t.me/sirbiprod")
+
+    await sleep(5)
+    logger.info("Run script...")
+    logger.info(f"Detected {len(get_session_names())} sessions | {len(get_proxies())} proxies")
+
     if action == 1:
         tg_clients = await get_tg_clients()
         await run_tasks(tg_clients=tg_clients)
@@ -125,12 +111,10 @@ async def process() -> None:
 async def run_tasks(tg_clients: list[Client]):
     proxies = get_proxies()
     proxies_cycle = cycle(proxies) if proxies else None
-    video_codes = VideoCodes()
     tasks = [
         asyncio.create_task(
-            run_tapper(tg_client=tg_client, video_codes=video_codes, proxy=next(proxies_cycle) if proxies_cycle else None)
+            run_tapper(tg_client=tg_client, proxy=next(proxies_cycle) if proxies_cycle else None)
         )
         for tg_client in tg_clients
     ]
-    tasks.append(asyncio.create_task(video_codes.run_updater()))
     await asyncio.gather(*tasks)

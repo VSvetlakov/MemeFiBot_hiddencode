@@ -1,5 +1,6 @@
 import ssl
-
+from aiohttp import TCPConnector
+from aiohttp_socks import ProxyConnector
 
 class TLSv1_3_BYPASS:
     CIPHERS = [
@@ -20,3 +21,7 @@ class TLSv1_3_BYPASS:
         ssl_context.minimum_version = ssl.TLSVersion.TLSv1_3
         ssl_context.maximum_version = ssl.TLSVersion.TLSv1_3
         return ssl_context
+
+def get_connector(proxy: str):
+    ssl_context = TLSv1_3_BYPASS.create_ssl_context()
+    return ProxyConnector().from_url(url=proxy, ssl=ssl_context) if proxy else TCPConnector(ssl=ssl_context)
